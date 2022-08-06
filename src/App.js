@@ -27,9 +27,18 @@ function App() {
 
   const onGridReady = (params) => {
     setGridApi(params);
-    params.api.getToolPanelInstance("filters").expandFilters("make");
+    expandFilters(params, "make");
   };
 
+  const expandFilters = (params, ...filters) => {
+    const applyFilters = filters?.length > 0 ? filters : null;
+    params.api.getToolPanelInstance("filters").expandFilters(applyFilters);
+  };
+
+  const applyQuickFilter = (e) => {
+    const searchText = e.target.value;
+    gridApi.api.setQuickFilter(searchText);
+  };
   return (
     <div className="App">
       <h2 align="center">Ag Grid with React</h2>
@@ -49,13 +58,11 @@ function App() {
                 iconKey: "columns",
                 toolPanel: "agColumnsToolPanel",
                 toolPanelParams: {
+                  suppressPivotMode: true,
                   suppressRowGroups: true,
                   suppressValues: true,
-                  suppressPivots: false,
-                  suppressPivotMode: true,
                   suppressColumnFilter: false,
                   suppressColumnSelectAll: false,
-                  suppressColumnExpandAll: false,
                 },
               },
               {
@@ -65,14 +72,13 @@ function App() {
                 iconKey: "filter",
                 toolPanel: "agFiltersToolPanel",
                 toolPanelParams: {
-                  suppressExpandAll: true,
                   suppressFilterSearch: false,
                 },
               },
               {
-                id: "quickSearch",
-                labelDefault: "Quick",
-                labelKey: "quickSearch",
+                id: "QuickSearch",
+                labelDefault: "Quick Search",
+                labelKey: "QuickSearch",
                 iconKey: "menu",
                 toolPanel: () => (
                   <div>
@@ -88,16 +94,14 @@ function App() {
                         borderBottom: `1px #181616 solid`,
                         padding: `0 5px`,
                       }}
-                      onChange={(e) =>
-                        gridApi.api.setQuickFilter(e.target.value)
-                      }
+                      onChange={applyQuickFilter}
                     />
                   </div>
                 ),
               },
             ],
-            position: "right",
-            defaultToolPanel: "quickSearch",
+            // defaultToolPanel: "QuickSearch",
+            // position: "right",
           }}
         />
       </div>
