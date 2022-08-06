@@ -1,11 +1,12 @@
 import "./App.css";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-enterprise";
 
 import "ag-grid-community/dist/styles/ag-grid.css";
 import "ag-grid-community/dist/styles/ag-theme-material.css";
 import { DATA } from "./data";
+import { clearLocalStorage, getLocalStorage, setLocalStorage } from "./utility";
 
 function App() {
   const [gridApi, setGridApi] = useState();
@@ -23,26 +24,49 @@ function App() {
     { headerName: "Date", field: "date" },
   ];
 
-  const defColumnDefs = { flex: 1, filter: true };
+  const defColumnDefs = { flex: 1, filter: true, sortable: true };
 
   const onGridReady = (params) => {
     setGridApi(params);
-    expandFilters(params, "make");
+    restoreState(params);
   };
 
-  const expandFilters = (params, ...filters) => {
-    const applyFilters = filters?.length > 0 ? filters : null;
-    params.api.getToolPanelInstance("filters").expandFilters(applyFilters);
+  const saveState = () => {
+    const colState = gridApi.columnApi.getColumnState();
+    setLocalStorage(colState);
+    closeSidebarToolpanel();
+    console.log("column state saved");
   };
 
-  const applyQuickFilter = (e) => {
-    const searchText = e.target.value;
-    gridApi.api.setQuickFilter(searchText);
+  const restoreState = (params) => {
+    const colState = getLocalStorage();
+    if (!colState) {
+      console.log("no columns state to restore by, you must save state first");
+      return;
+    }
+    params.columnApi.applyColumnState({
+      state: colState,
+      applyOrder: true,
+    });
+    closeSidebarToolpanel();
+    console.log("column state restored");
   };
+
+  const resetState = () => {
+    gridApi.columnApi.resetColumnState();
+    clearLocalStorage();
+    closeSidebarToolpanel();
+    console.log("column state reset");
+  };
+
+  const closeSidebarToolpanel = () => [gridApi.api.closeToolPanel()];
   return (
     <div className="App">
       <h2 align="center">Ag Grid with React</h2>
-      <p align="center">Sidebar toolpanel with customization in AG Grid</p>
+      <p align="center">
+        Manage Column state for Better User Experience in AG Grid
+      </p>
+
       <div className="ag-theme-material" style={{ height: 600 }}>
         <AgGridReact
           rowData={rowData}
@@ -54,54 +78,24 @@ function App() {
               {
                 id: "columns",
                 labelDefault: "Columns",
-                labelKey: "columns",
                 iconKey: "columns",
                 toolPanel: "agColumnsToolPanel",
-                toolPanelParams: {
-                  suppressPivotMode: true,
-                  suppressRowGroups: true,
-                  suppressValues: true,
-                  suppressColumnFilter: false,
-                  suppressColumnSelectAll: false,
-                },
               },
               {
-                id: "filters",
-                labelDefault: "Filters",
-                labelKey: "filters",
-                iconKey: "filter",
-                toolPanel: "agFiltersToolPanel",
-                toolPanelParams: {
-                  suppressFilterSearch: false,
-                },
-              },
-              {
-                id: "QuickSearch",
-                labelDefault: "Quick Search",
-                labelKey: "QuickSearch",
+                id: "save",
+                labelDefault: "Save",
                 iconKey: "menu",
                 toolPanel: () => (
-                  <div>
-                    <h4>Global Search</h4>
-                    <input
-                      placeholder="Search..."
-                      type="search"
-                      style={{
-                        width: 190,
-                        height: 35,
-                        outline: "none",
-                        border: "none",
-                        borderBottom: `1px #181616 solid`,
-                        padding: `0 5px`,
-                      }}
-                      onChange={applyQuickFilter}
-                    />
+                  <div style={{ marginTop: 20 }}>
+                    <button onClick={saveState}>Save State</button>
+                    <button onClick={() => restoreState(gridApi)}>
+                      Restore State
+                    </button>
+                    <button onClick={resetState}>Reset State</button>
                   </div>
                 ),
               },
             ],
-            // defaultToolPanel: "QuickSearch",
-            // position: "right",
           }}
         />
       </div>
