@@ -6,7 +6,6 @@ import "ag-grid-enterprise";
 import "ag-grid-community/dist/styles/ag-grid.css";
 import "ag-grid-community/dist/styles/ag-theme-material.css";
 import { DATA } from "./data";
-import DeatailsComponent from "./Details";
 
 function App() {
   const [gridApi, setGridApi] = useState();
@@ -16,7 +15,6 @@ function App() {
     {
       headerName: "Make",
       field: "make",
-      cellRenderer: "agGroupCellRenderer",
       checkboxSelection: true,
       headerCheckboxSelection: true,
     },
@@ -25,37 +23,82 @@ function App() {
     { headerName: "Date", field: "date" },
   ];
 
-  const defColumnDefs = { flex: 1 };
+  const defColumnDefs = { flex: 1, filter: true };
 
   const onGridReady = (params) => {
     setGridApi(params);
-  };
-  const onFirstDataRendered = () => {
-    // for all rows expanded
-    // gridApi.api.forEachNode((node) => {
-    //   node.setExpanded(true);
-    // });
-
-    // for specific row expand
-    const row2 = gridApi.api.getDisplayedRowAtIndex(1);
-    row2.setExpanded(true);
-    // gridApi.api.getDisplayedRowAtIndex(0).setExpanded(true);
+    params.api.getToolPanelInstance("filters").expandFilters("make");
   };
 
   return (
     <div className="App">
       <h2 align="center">Ag Grid with React</h2>
-      <p align="center">Details Row Panel in AG Grid</p>
+      <p align="center">Sidebar toolpanel with customization in AG Grid</p>
       <div className="ag-theme-material" style={{ height: 600 }}>
         <AgGridReact
           rowData={rowData}
           columnDefs={columns}
           defaultColDef={defColumnDefs}
           onGridReady={onGridReady}
-          masterDetail={true}
-          detailCellRenderer={(props) => <DeatailsComponent {...props} />}
-          detailRowHeight={300}
-          onFirstDataRendered={onFirstDataRendered}
+          sideBar={{
+            toolPanels: [
+              {
+                id: "columns",
+                labelDefault: "Columns",
+                labelKey: "columns",
+                iconKey: "columns",
+                toolPanel: "agColumnsToolPanel",
+                toolPanelParams: {
+                  suppressRowGroups: true,
+                  suppressValues: true,
+                  suppressPivots: false,
+                  suppressPivotMode: true,
+                  suppressColumnFilter: false,
+                  suppressColumnSelectAll: false,
+                  suppressColumnExpandAll: false,
+                },
+              },
+              {
+                id: "filters",
+                labelDefault: "Filters",
+                labelKey: "filters",
+                iconKey: "filter",
+                toolPanel: "agFiltersToolPanel",
+                toolPanelParams: {
+                  suppressExpandAll: true,
+                  suppressFilterSearch: false,
+                },
+              },
+              {
+                id: "quickSearch",
+                labelDefault: "Quick",
+                labelKey: "quickSearch",
+                iconKey: "menu",
+                toolPanel: () => (
+                  <div>
+                    <h4>Global Search</h4>
+                    <input
+                      placeholder="Search..."
+                      type="search"
+                      style={{
+                        width: 190,
+                        height: 35,
+                        outline: "none",
+                        border: "none",
+                        borderBottom: `1px #181616 solid`,
+                        padding: `0 5px`,
+                      }}
+                      onChange={(e) =>
+                        gridApi.api.setQuickFilter(e.target.value)
+                      }
+                    />
+                  </div>
+                ),
+              },
+            ],
+            position: "right",
+            defaultToolPanel: "quickSearch",
+          }}
         />
       </div>
     </div>
