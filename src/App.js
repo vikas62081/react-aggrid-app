@@ -1,5 +1,5 @@
 import "./App.css";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-enterprise";
 
@@ -10,20 +10,25 @@ import { clearLocalStorage, getLocalStorage, setLocalStorage } from "./utility";
 
 function App() {
   const [gridApi, setGridApi] = useState();
-  const rowData = DATA;
+  const [rowData, setRowData] = useState();
 
   const columns = [
-    {
-      headerName: "Make",
-      field: "make",
-      checkboxSelection: true,
-      headerCheckboxSelection: true,
-    },
-    { headerName: "Price", field: "price" },
-    { headerName: "Model", field: "model" },
-    { headerName: "Date", field: "date" },
+    { field: "athlete", minWidth: 170 },
+    { field: "age" },
+    { field: "country" },
+    { field: "year" },
+    { field: "date" },
+    { field: "sport" },
+    { field: "gold" },
+    { field: "silver" },
+    { field: "bronze" },
+    { field: "total" },
   ];
-
+  useEffect(() => {
+    fetch("https://www.ag-grid.com/example-assets/olympic-winners.json")
+      .then((response) => response.json())
+      .then((data) => setRowData(data));
+  }, []);
   const defColumnDefs = { flex: 1, filter: true, sortable: true };
 
   const onGridReady = (params) => {
