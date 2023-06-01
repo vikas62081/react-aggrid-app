@@ -5,10 +5,15 @@ import "ag-grid-enterprise";
 
 import "ag-grid-community/dist/styles/ag-grid.css";
 import "ag-grid-community/dist/styles/ag-theme-material.css";
+import "ag-grid-community/dist/styles/ag-theme-alpine.css";
+import "ag-grid-community/dist/styles/ag-theme-alpine-dark.css";
+
 import { DATA } from "./data";
+import useDarkMode from "./useDarkMode";
 
 function App() {
   const [gridApi, setGridApi] = useState();
+  const { isDark, setDarkMode, setLightMode } = useDarkMode();
   const rowData = DATA;
 
   const columns = [
@@ -27,82 +32,25 @@ function App() {
 
   const onGridReady = (params) => {
     setGridApi(params);
-    expandFilters(params, "make");
   };
 
-  const expandFilters = (params, ...filters) => {
-    const applyFilters = filters?.length > 0 ? filters : null;
-    params.api.getToolPanelInstance("filters").expandFilters(applyFilters);
-  };
-
-  const applyQuickFilter = (e) => {
-    const searchText = e.target.value;
-    gridApi.api.setQuickFilter(searchText);
-  };
   return (
     <div className="App">
       <h2 align="center">Ag Grid with React</h2>
-      <p align="center">Sidebar toolpanel with customization in AG Grid</p>
-      <div className="ag-theme-material" style={{ height: 600 }}>
+      <p align="center">Theme Change (Custom Hook) in AG Grid</p>
+      <div>
+        Mode : <button onClick={setDarkMode}>Dark mode</button>
+        <button onClick={setLightMode}>Light Mode</button>
+      </div>
+      <div
+        className={isDark ? "ag-theme-alpine-dark" : "ag-theme-alpine"}
+        style={{ height: 600 }}
+      >
         <AgGridReact
           rowData={rowData}
           columnDefs={columns}
           defaultColDef={defColumnDefs}
           onGridReady={onGridReady}
-          sideBar={{
-            toolPanels: [
-              {
-                id: "columns",
-                labelDefault: "Columns",
-                labelKey: "columns",
-                iconKey: "columns",
-                toolPanel: "agColumnsToolPanel",
-                toolPanelParams: {
-                  suppressPivotMode: true,
-                  suppressRowGroups: true,
-                  suppressValues: true,
-                  suppressColumnFilter: false,
-                  suppressColumnSelectAll: false,
-                },
-              },
-              {
-                id: "filters",
-                labelDefault: "Filters",
-                labelKey: "filters",
-                iconKey: "filter",
-                toolPanel: "agFiltersToolPanel",
-                toolPanelParams: {
-                  suppressFilterSearch: false,
-                },
-              },
-              {
-                id: "QuickSearch",
-                labelDefault: "Quick Search",
-                labelKey: "QuickSearch",
-                iconKey: "menu",
-                toolPanel: () => (
-                  <div>
-                    <h4>Global Search</h4>
-                    <input
-                      placeholder="Search..."
-                      type="search"
-                      style={{
-                        width: 190,
-                        height: 35,
-                        outline: "none",
-                        border: "none",
-                        borderBottom: `1px #181616 solid`,
-                        padding: `0 5px`,
-                      }}
-                      onChange={applyQuickFilter}
-                    />
-                  </div>
-                ),
-              },
-            ],
-            // defaultToolPanel: "QuickSearch",
-            // position: "right",
-          }}
         />
       </div>
     </div>
